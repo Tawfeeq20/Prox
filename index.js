@@ -6,14 +6,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.options('*', cors());
+
 app.all('/proxy', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({error: 'No URL'});
   try {
     const response = await fetch(url, {
       method: req.method,
-      headers: {'Content-Type': 'application/json'},
-      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: req.method !== 'GET' && req.method !== 'OPTIONS' 
+        ? JSON.stringify(req.body) 
+        : undefined
     });
     const data = await response.json();
     res.json(data);
@@ -22,4 +28,5 @@ app.all('/proxy', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Proxy running!'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('Proxy running on port ' + PORT));
