@@ -1,0 +1,25 @@
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.all('/proxy', async (req, res) => {
+  const url = req.query.url;
+  if (!url) return res.status(400).json({error: 'No URL'});
+  try {
+    const response = await fetch(url, {
+      method: req.method,
+      headers: {'Content-Type': 'application/json'},
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch(e) {
+    res.status(500).json({error: e.message});
+  }
+});
+
+app.listen(3000, () => console.log('Proxy running!'));
